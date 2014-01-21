@@ -384,7 +384,7 @@ define(['jquery', 'underscore', 'backbone', 'backbone-forms'], function($, _, Ba
 
     //STATICS
     template: _.template('\
-      <div>\
+      <div class="listEntry">\
         <span data-editor></span>\
         <button type="button" data-action="remove">&times;</button>\
       </div>\
