@@ -424,6 +424,13 @@
 
       //Template
       this.template = options.template || this.constructor.template;
+      
+      var ModalForm = this.form.constructor;
+
+      var form = this.modalForm = new ModalForm({
+        schema: this.nestedSchema,
+        data: this.value
+      });
     },
 
     /**
@@ -507,16 +514,11 @@
     },
 
     openEditor: function() {
-      var self = this,
-          ModalForm = this.form.constructor;
-
-      var form = this.modalForm = new ModalForm({
-        schema: this.nestedSchema,
-        data: this.value
-      });
+      var self = this;
+ 
 
       var modal = this.modal = new Form.editors.List.Modal.ModalAdapter({
-        content: form,
+        content: this.modalForm,
         animate: true
       });
 
