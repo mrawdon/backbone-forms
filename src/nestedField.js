@@ -7,7 +7,8 @@ Form.NestedField = Form.Field.extend({
 
   template: _.template($.trim('\
     <div>\
-      <span data-editor></span>\
+	  <label for="<%= editorId %>"><%= title %></label>\
+	  <span data-editor></span>\
       <% if (help) { %>\
         <div><%= help %></div>\
       <% } %>\
