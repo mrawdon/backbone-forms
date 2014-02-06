@@ -50,3 +50,16 @@
 .listEntry button{
 	display: inline-block;
 }
+
+.listEntry span {
+	max-width: 230px;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
+	min-width: 230px;
+	width: 230px;
+	display: inline-block;
+}	
+.listEntry button{
+	display: inline-block;		
+}

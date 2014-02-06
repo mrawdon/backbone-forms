@@ -1005,7 +1005,8 @@ Form.NestedField = Form.Field.extend({
 
   template: _.template($.trim('\
     <div>\
-      <span data-editor></span>\
+	  <label for="<%= editorId %>"><%= title %></label>\
+	  <span data-editor></span>\
       <% if (help) { %>\
         <div><%= help %></div>\
       <% } %>\
@@ -1253,6 +1254,9 @@ Form.editors.Text = Form.Editor.extend({
 
     if (schema && schema.editorAttrs && schema.editorAttrs.type) type = schema.editorAttrs.type;
     if (schema && schema.dataType) type = schema.dataType;
+    
+    this.numeric = false;
+    if(schema  && schema.editorAttrs && schema.editorAttrs.numeric) this.numeric = schema.editorAttrs.numeric; 
 
     this.$el.attr('type', type);
   },
@@ -1282,6 +1286,9 @@ Form.editors.Text = Form.Editor.extend({
    * @return {String}
    */
   getValue: function() {
+	if(this.numeric){
+		return parseInt(this.$el.val(),10);
+	}
     return this.$el.val();
   },
 

@@ -78,12 +78,45 @@
       return this;
     },
 
+    _sortItems: function(a,b){
+      if(!a && !b){
+    	  return 0;
+      }
+      if(!a){
+    	 return -1;
+      } 
+      if(!b){
+    	  return 1;
+      }
+      var list = a;
+      
+      var aValue = a.value[list.schema.sortColumn], bValue = a.value[list.schema.sortColumn];
+      
+  	  if ( aValue == null || aValue == "") return -1;
+  	  if (bValue == null|| bValue == "") return 1;
+  	  if(_.isNumber(aValue)){
+  		if(aValue < bValue){
+  			return -1;
+  		} else if(aValue === bValue){
+  			return 0;
+  		} 
+  		return -1;
+  	  }
+  	  return aValue.localeCompare(bValue);
+    },
+    
+    _updateOrder:function(){
+  	  for(var i=0; i < this.items.length; i++){
+  		  this.items[i].value[this.schema.sortColumn] = i;
+  	  }
+    },
+    
     /**
      * Add a new item to the list
      * @param {Mixed} [value]           Value for the new item editor
      * @param {Boolean} [userInitiated] If the item was added by the user clicking 'add'
      */
-    addItem: function(value, userInitiated) {
+    addItem: function (value, userInitiated) {
       var self = this,
           editors = Form.editors;
 
@@ -100,6 +133,8 @@
       var _addItem = function() {
         self.items.push(item);
         self.$list.append(item.el);
+        //self must get over ridden somewhere ? make a copy called that
+        var that=self; 
         
         item.editor.on('all', function(event) {
           if (event === 'change') return;
@@ -127,6 +162,15 @@
           this.trigger('focus', this);
         }, self);
         item.editor.on('blur', function() {
+        	if(that.schema.sort === true || typeof that.schema.sort == "function"){
+        		//update item to get correct sorting
+        		item.value = item.getValue();
+        		var sortFunction = (that.schema.sort === true)?that._sortItems:that.schema.sort;
+        		that.items.sort(sortFunction);
+        		_.each(that.items, function(listItem){
+        			listItem.$el.detach().appendTo(that.$list);
+        		});
+        	}
           if (!this.hasFocus) return;
           var self = this;
           setTimeout(function() {
@@ -173,6 +217,8 @@
       this.items[index].remove();
       this.items.splice(index, 1);
       
+      updateOrder();
+      
       if (item.addEventTriggered) {
         this.trigger('remove', this, item.editor);
         this.trigger('change', this);
@@ -180,7 +226,31 @@
 
       if (!this.items.length && !this.Editor.isAsync) this.addItem();
     },
-
+    moveUp: function(item){
+    	var that =this, index = _.indexOf(this.items, item);
+    	if(index <= 0 || index >= this.items.lengths){
+    		return;
+    	}
+    	this.items[index] = this.items[index-1];
+    	this.items[index-1] = item;
+    	this._updateOrder();
+    	_.each(this.items, function(listItem){
+			listItem.$el.detach().appendTo(that.$list);
+		});
+    },
+    moveDown: function(item){
+    	var that =this,index = _.indexOf(this.items, item);
+    	if(index < 0 || index >= (this.items.lengths-1)){
+    		return;
+    	}
+    	this.items[index] = this.items[index+1];
+    	this.items[index+1] = item;
+    	this._updateOrder();
+    	_.each(this.items, function(listItem){
+			listItem.$el.detach().appendTo(that.$list);
+		});
+    },
+    
     getValue: function() {
       var values = _.map(this.items, function(item) {
         return item.getValue();
@@ -273,6 +343,14 @@
         event.preventDefault();
         this.list.removeItem(this);
       },
+      'click [data-action="moveUp"]': function(event) {
+          event.preventDefault();
+          this.list.moveUp(this);
+      },
+      'click [data-action="moveDown"]': function(event) {
+          event.preventDefault();
+          this.list.moveDown(this);
+      },
       'keydown input[type=text]': function(event) {
         if(event.keyCode !== 13) return;
         event.preventDefault();
@@ -284,6 +362,9 @@
     initialize: function(options) {
       this.list = options.list;
       this.schema = options.schema || this.list.schema;
+      
+      this.schema.sort = this.schema.sort || false;
+      
       this.value = options.value;
       this.Editor = options.Editor || Form.editors.Text;
       this.key = options.key;
@@ -293,18 +374,18 @@
     },
 
     render: function() {
-      //Create editor
-      this.editor = new this.Editor({
-        key: this.key,
-        schema: this.schema,
-        value: this.value,
-        list: this.list,
-        item: this,
-        form: this.form
-      }).render();
+        //Create editor
+        this.editor = new this.Editor({
+          key: this.key,
+          schema: this.schema,
+          value: this.value,
+          list: this.list,
+          item: this,
+          form: this.form
+        }).render();
 
       //Create main element
-      var $el = $($.trim(this.template()));
+      var $el = $($.trim(this.template(this.schema)));
 
       $el.find('[data-editor]').append(this.editor.el);
 
@@ -384,6 +465,10 @@
     template: _.template('\
       <div class="listEntry">\
         <span data-editor></span>\
+    	<%if (sort === true){%>\
+    	<button type="button" data-action="moveUp">^</button>\
+    	<button type="button" data-action="moveDown">v</button>\
+    	<%}%>\
         <button type="button" data-action="remove">&times;</button>\
       </div>\
     ', null, Form.templateSettings),
@@ -400,7 +485,7 @@
   Form.editors.List.Modal = Form.editors.Base.extend({
 
     events: {
-      'click': 'openEditor'
+      'click [data-action="edit"]': 'openEditor'
     },
 
     /**
@@ -424,13 +509,7 @@
 
       //Template
       this.template = options.template || this.constructor.template;
-      
-      var ModalForm = this.form.constructor;
 
-      var form = this.modalForm = new ModalForm({
-        schema: this.nestedSchema,
-        data: this.value
-      });
     },
 
     /**
@@ -462,6 +541,7 @@
      * Renders the list item representation
      */
     renderSummary: function() {
+     console.log('Rendering summary',this.getStringValue());	
       this.$el.html($.trim(this.template({
         summary: this.getStringValue()
       })));
@@ -514,8 +594,13 @@
     },
 
     openEditor: function() {
-      var self = this;
+      var self = this,
+      	ModalForm = this.form.constructor;
  
+      var form = this.modalForm = new ModalForm({
+          schema: this.nestedSchema,
+          data: this.value
+        });
 
       var modal = this.modal = new Form.editors.List.Modal.ModalAdapter({
         content: this.modalForm,
@@ -547,6 +632,7 @@
 
       //Store form value
       this.value = form.getValue();
+      console.log('value', this.value);
 
       //Render item
       this.renderSummary();
@@ -556,6 +642,7 @@
       this.trigger('change', this);
 
       this.onModalClosed();
+      console.log('value', this.value);
     },
 
     /**
@@ -593,7 +680,8 @@
   }, {
     //STATICS
     template: _.template('\
-      <div><%= summary %></div>\
+      <div><div><%= summary %></div></div>\
+     <button type="button" data-action="edit">Edit</button>\
     ', null, Form.templateSettings),
 
     //The modal adapter that creates and manages the modal dialog.
@@ -630,6 +718,8 @@
       var nestedSchema = schema.model.prototype.schema;
 
       this.nestedSchema = (_.isFunction(nestedSchema)) ? nestedSchema() : nestedSchema;
+      
+      
     },
 
     /**
