@@ -56,13 +56,23 @@
 
       //Store a reference to the list (item container)
       this.$list = $el.is('[data-items]') ? $el : $el.find('[data-items]');
-
+      
       //Add existing items
       if (value.length) {
         _.each(value, function(itemValue) {
           self.addItem(itemValue);
         });
       }
+      
+      
+      //sort the list, should sort before add but I'm lazy
+      if(this.schema.sort === true || typeof this.schema.sort == "function"){
+  		var sortFunction = (this.schema.sort === true)?this._sortItems:this.schema.sort;
+  		this.items.sort(sortFunction);
+  		_.each(this.items, function(listItem){
+  			listItem.$el.detach().appendTo(this.$list);
+  		});
+  	  }
 
       //If no existing items create an empty one, unless the editor specifies otherwise
       else {
@@ -90,7 +100,7 @@
       }
       var list = a;
       
-      var aValue = a.value[list.schema.sortColumn], bValue = a.value[list.schema.sortColumn];
+      var aValue = a.value[list.schema.sortColumn], bValue = b.value[list.schema.sortColumn];
       
   	  if ( aValue == null || aValue == "") return -1;
   	  if (bValue == null|| bValue == "") return 1;
@@ -100,7 +110,7 @@
   		} else if(aValue === bValue){
   			return 0;
   		} 
-  		return -1;
+  		return 1;
   	  }
   	  return aValue.localeCompare(bValue);
     },
@@ -135,6 +145,15 @@
         self.$list.append(item.el);
         //self must get over ridden somewhere ? make a copy called that
         var that=self; 
+        
+        //sort the list, should sort before add but I'm lazy
+        if(self.schema.sort === true || typeof this.schema.sort == "function"){
+    		var sortFunction = (self.schema.sort === true)?self._sortItems:self.schema.sort;
+    		self.items.sort(sortFunction);
+    		_.each(self.items, function(listItem){
+    			listItem.$el.detach().appendTo(self.$list);
+    		});
+    	  }
         
         item.editor.on('all', function(event) {
           if (event === 'change') return;
