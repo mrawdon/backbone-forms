@@ -10,6 +10,7 @@
 Form.editors.Select = Form.editors.Base.extend({
 
   tagName: 'select',
+  className: 'form-control',
 
   events: {
     'change': function(event) {
