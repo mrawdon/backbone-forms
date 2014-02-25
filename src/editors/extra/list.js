@@ -141,6 +141,8 @@
       }).render();
       
       var _addItem = function() {
+    	//give item a value
+    	item.value = item.getValue();
         self.items.push(item);
         self.$list.append(item.el);
         //self must get over ridden somewhere ? make a copy called that
@@ -186,6 +188,7 @@
         		item.value = item.getValue();
         		var sortFunction = (that.schema.sort === true)?that._sortItems:that.schema.sort;
         		that.items.sort(sortFunction);
+        		that._updateOrder();
         		_.each(that.items, function(listItem){
         			listItem.$el.detach().appendTo(that.$list);
         		});
