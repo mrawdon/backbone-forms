@@ -1542,6 +1542,7 @@ Form.editors.Checkbox = Form.editors.Base.extend({
 Form.editors.Select = Form.editors.Base.extend({
 
   tagName: 'select',
+  className: 'form-control',
 
   events: {
     'change': function(event) {

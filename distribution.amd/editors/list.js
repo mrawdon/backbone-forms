@@ -344,7 +344,7 @@ define(['jquery', 'underscore', 'backbone', 'backbone-forms'], function($, _, Ba
     template: _.template('\
       <div>\
         <div data-items></div>\
-        <button type="button" data-action="add">Add</button>\
+        <button class="btn" type="button" data-action="add">Add</button>\
       </div>\
     ', null, Form.templateSettings)
 
@@ -490,10 +490,10 @@ define(['jquery', 'underscore', 'backbone', 'backbone-forms'], function($, _, Ba
       <div class="listEntry">\
         <span data-editor></span>\
     	<%if (sort === true){%>\
-    	<button type="button" data-action="moveUp">^</button>\
-    	<button type="button" data-action="moveDown">v</button>\
+    	<button class="btn" type="button" data-action="moveUp">^</button>\
+    	<button class="btn" type="button" data-action="moveDown">v</button>\
     	<%}%>\
-        <button type="button" data-action="remove">&times;</button>\
+        <button class="btn" type="button" data-action="remove">&times;</button>\
       </div>\
     ', null, Form.templateSettings),
 
@@ -705,7 +705,7 @@ define(['jquery', 'underscore', 'backbone', 'backbone-forms'], function($, _, Ba
     //STATICS
     template: _.template('\
       <div><div><%= summary %></div></div>\
-     <button type="button" data-action="edit">Edit</button>\
+     <button class="btn" type="button" data-action="edit">Edit</button>\
     ', null, Form.templateSettings),
 
     //The modal adapter that creates and manages the modal dialog.
